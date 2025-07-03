@@ -1,12 +1,12 @@
-﻿#include "EmotionGraph.h"
+#include "EmotionGraph.h"
 #include <iostream>
 #include <algorithm>
 #include <cmath>
 
-// Adds a node to the graph if it doesn't already exist
+// Adds a node to the graph if does not already exist
 void EmotionGraph::addNodeInternal(const std::string& node) {
     if (graph.find(node) == graph.end()) {
-        graph[node] = {};  // Initialize adjacency list for this node
+        graph[node] = {};  
     }
 }
 
@@ -17,16 +17,16 @@ void EmotionGraph::addNode(const std::string& node) {
 
 // Adds an undirected edge between two nodes with a given weight
 void EmotionGraph::addEdge(const std::string& from, const std::string& to, double weight) {
-    addNodeInternal(from);  // Ensure 'from' node exists
-    addNodeInternal(to);    // Ensure 'to' node exists
+    addNodeInternal(from);  
+    addNodeInternal(to);    
 
-    graph[from].push_back({ to, weight }); // Add edge from -> to
-    graph[to].push_back({ from, weight }); // Add edge to -> from (undirected)
+    graph[from].push_back({ to, weight }); 
+    graph[to].push_back({ from, weight }); 
 }
 
 // Builds the full emotion graph with emotion nodes, keyword nodes, and weighted edges
 void EmotionGraph::buildExpandedGraph() {
-    graph.clear(); // Clear existing graph data
+    graph.clear(); 
 
     // Define primary emotion nodes
     std::vector<std::string> emotions = {
@@ -56,11 +56,11 @@ void EmotionGraph::buildExpandedGraph() {
 
     // For each emotion, add keyword nodes and edges connecting keywords to emotion nodes
     for (const auto& [emotion, kws] : emotionKeywordsWithWeights) {
-        emotionKeywords[emotion].clear();  // Clear any existing keywords for the emotion
+        emotionKeywords[emotion].clear();  
         for (const auto& [kw, weight] : kws) {
-            addNode(kw);                   // Add keyword as node
-            addEdge(kw, emotion, weight); // Connect keyword to emotion with given weight
-            emotionKeywords[emotion].insert(kw); // Store keyword in emotionKeywords map
+            addNode(kw);  
+            addEdge(kw, emotion, weight); 
+            emotionKeywords[emotion].insert(kw); 
         }
     }
 
@@ -107,15 +107,17 @@ std::vector<std::pair<std::string, double>> EmotionGraph::getTopEmotions(
     const std::unordered_map<std::string, double>& toneSimilarity,
     int topK
 ) {
-    using PQElement = std::tuple<double, std::string, std::vector<std::string>>; // (totalCost, currentNode, pathSoFar)
-    std::unordered_map<std::string, double> distances;  // Best cost to reach each node
-    std::priority_queue<PQElement, std::vector<PQElement>, std::greater<>> pq; // Minheap for Dijkstra traversal
+    using PQElement = std::tuple<double, std::string, std::vector<std::string>>; 
+    // Best cost to reach each node
+    std::unordered_map<std::string, double> distances;  
+    // Minheap for Dijkstra traversal
+    std::priority_queue<PQElement, std::vector<PQElement>, std::greater<>> pq; 
 
     // Initialize priority queue with input keywords based on inverse of intensity (higher intensity → lower cost)
     for (const auto& [keyword, intensity] : intensityScores) {
-        if (!graph.count(keyword)) continue;  // Skip unknown words
-        double safeIntensity = std::max(intensity, 0.1);  // Avoid divide by zero
-        double initCost = 1.0 / (safeIntensity + 1e-6);   // Stronger feelings → more relevant
+        if (!graph.count(keyword)) continue;  
+        double safeIntensity = std::max(intensity, 0.1);  
+        double initCost = 1.0 / (safeIntensity + 1e-6);   
         pq.push({ initCost, keyword, {keyword} });
         distances[keyword] = initCost;
     }
