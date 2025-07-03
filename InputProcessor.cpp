@@ -1,4 +1,4 @@
-﻿#include "InputProcessor.h"
+#include "InputProcessor.h"
 #include <sstream>
 #include <algorithm>
 #include <cctype>
@@ -6,22 +6,19 @@
 // Tokenizes the input string into lowercase words while preserving apostrophes and removing other punctuation
 std::vector<std::string> InputProcessor::tokenize(const std::string& input) {
     std::vector<std::string> tokens;
-    std::istringstream iss(input); // Create a stream from the input string
+    std::istringstream iss(input); 
     std::string word;
-
-    while (iss >> word) { // Extract words separated by whitespace
+    while (iss >> word) { 
         // Remove punctuation except apostrophes
         word.erase(std::remove_if(word.begin(), word.end(),
             [](char c) { return std::ispunct(static_cast<unsigned char>(c)) && c != '\''; }),
             word.end());
-
         // Convert word to lowercase
         std::transform(word.begin(), word.end(), word.begin(), ::tolower);
-
-        if (!word.empty()) tokens.push_back(word); // Add cleaned word to tokens
+        // Add cleaned word to tokens
+        if (!word.empty()) tokens.push_back(word); 
     }
-
-    return tokens; // Return the list of tokens
+    return tokens; 
 }
 
 // Collapse character repetitions beyond 2 (e.g., "sooo" → "soo", "saaaad" → "saad")
@@ -32,7 +29,7 @@ std::string collapseRepeats(const std::string& word) {
     for (char c : word) {
         if (c == prev) {
             repeatCount++;
-            if (repeatCount < 2) result += c; // Allow up to 2 repeated chars
+            if (repeatCount < 3) result += c; 
         }
         else {
             repeatCount = 0;
@@ -64,83 +61,56 @@ std::unordered_map<std::string, double> InputProcessor::scoreIntensities(const s
         std::string cleaned;
         std::copy_if(rawWord.begin(), rawWord.end(), std::back_inserter(cleaned),
             [](char c) { return std::isalpha(static_cast<unsigned char>(c)) || c == '\''; });
-
         std::string lowerWord = cleaned;
         std::transform(lowerWord.begin(), lowerWord.end(), lowerWord.begin(), ::tolower);
-        lowerWord = collapseRepeats(lowerWord); // Normalize "sooo" to "soo"
+        lowerWord = collapseRepeats(lowerWord); 
 
 
         // Check negations first (so negation applies before intensifiers)
         if (negations.count(lowerWord)) {
             negationWindow = NEGATION_SPAN;
-            boost = 1.0;  // Reset boost to avoid intensifiers confusing negation
+            boost = 1.0;  
             continue;
         }
 
         // Check intensifiers only if not negation word
         if (strongIntensifiers.count(lowerWord)) {
-            boost = 1.5; // Strong boost
+            boost = 1.5; 
             continue;
         }
         if (mildIntensifiers.count(lowerWord)) {
-            boost = 1.2; // Mild boost (should be > 1 to increase, not 0.5)
+            boost = -.5; 
             continue;
         }
-
         double intensity = 1.0 * boost;
 
         // Capital letter boost
         bool hasUpper = std::any_of(rawWord.begin(), rawWord.end(),
             [](char c) { return std::isupper(static_cast<unsigned char>(c)); });
         if (hasUpper) intensity += 0.5;
-
-        // Detect repeated characters (3 or more in a row) and boost intensity accordingly
-        int maxRepeatBoost = 0;
-        int repeatCount = 1;
-
+        // Detect repeated characters
+        bool repeatedChars = false;
         for (size_t i = 1; i < rawWord.size(); ++i) {
             if (rawWord[i] == rawWord[i - 1]) {
-                repeatCount++;
-            }
-            else {
-                if (repeatCount >= 3) {
-                    maxRepeatBoost = std::max(maxRepeatBoost, repeatCount - 2); // 1 for 3 repeats, 2 for 4, etc.
-                }
-                repeatCount = 1;
+                repeatedChars = true;
+                break;
             }
         }
-        // Check at end of word
-        if (repeatCount >= 3) {
-            maxRepeatBoost = std::max(maxRepeatBoost, repeatCount - 2);
-        }
-
-        // Add intensity boost based on max repeat block size (capped at 0.5)
-        if (maxRepeatBoost > 0) {
-            double boostAmount = 0.1 * maxRepeatBoost;
-            if (boostAmount > 0.5) boostAmount = 0.5;
-            intensity += boostAmount;
-        }
-
-
+        if (repeatedChars) intensity += 0.2;
         // Exclamation marks boost
         if (totalExclaimCount > 0) {
             intensity += 0.3 * totalExclaimCount;
         }
-
         // Apply negation window flip (negation overrides boost)
         if (negationWindow > 0) {
             intensity *= -1.0;
             negationWindow--;
         }
-
         scores[lowerWord] += intensity;
-
-        boost = 1.0;  // Reset boost after each scored word
+        boost = 1.0;  //Reset boost after each scored word
     }
-
     return scores;
 }
-
 // Computes tone similarity between input tokens and emotion keyword lists
 std::unordered_map<std::string, double> InputProcessor::computeToneSimilarity(
     const std::vector<std::string>& tokens,
@@ -148,29 +118,25 @@ std::unordered_map<std::string, double> InputProcessor::computeToneSimilarity(
 ) {
     std::unordered_map<std::string, double> similarity;
     size_t tokenCount = tokens.size();
-
     for (const auto& [emotion, keywords] : emotionKeywords) {
         int matchCount = 0;
-
         // Count how many input tokens match keywords associated with the emotion
         for (const auto& word : tokens) {
             if (keywords.count(word)) matchCount++;
         }
 
         if (matchCount == 0) {
-            similarity[emotion] = 0.0; // No overlap with this emotion
+            // No overlap with this emotion
+            similarity[emotion] = 0.0; 
             continue;
         }
-
         // Ratio of matches to total tokens (smoothed with +1 to avoid div by 0)
         double ratio = static_cast<double>(matchCount) / (tokenCount + 1);
-
         // Multiplier favors concentrated emotion keywords (but caps it)
         double multiplier = std::min(static_cast<double>(tokenCount) / matchCount, 3.0);
-
         // Final similarity score = density * intensity
         similarity[emotion] = ratio * multiplier;
     }
 
-    return similarity; // Map from emotion → tone similarity score
+    return similarity; // Map from emotion > tone similarity score
 }
