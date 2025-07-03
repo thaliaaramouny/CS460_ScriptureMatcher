@@ -1,0 +1,76 @@
+Test Case 1: Mixed Emotions + Intensifier + Caps Detection >> passed
+Input: I am excited to move, but very scared and NERVOUS about it
+Expected: 
+     1. Fear due to both strong negative emotions (scared, nervous) and “very” boosts score 
+     2. Anxiety triggered by nervous with caps, so it is boosted and prioritized over joy
+     3. Joy triggered by excited 
+Actual:
+Enter your feelings or thoughts:
+> I am excited to move, but very scared and NERVOUS about it
+
+Top emotions detected:
+- fear (score: 0.74026)
+ Suggested Bible verses:
+    * Isaiah 41:10 >> Do not fear: I am with you; do not be anxious: I am your God. I will strengthen you, I will help you, I will uphold you with my victorious right hand.
+
+- anxiety (score: 0.6)
+ Suggested Bible verses:
+    * Matthew 6:34 >> Do not worry about tomorrow; tomorrow will take care of itself. Sufficient for a day is its own evil.
+
+- joy (score: 0.551724)
+ Suggested Bible verses:
+    * Nehemiah 8:10 >> Do not be saddened this day, for rejoicing in the Lord is your strength!
+    * Psalm 16:11 >> You will show me the path to life, abounding joy in your presence, the delights at your right hand forever.
+    * Romans 15:13 >> May the God of hope fill you with all joy and peace in believing, so that you may abound in hope by the power of the holy Spirit.
+
+
+Test Case 2: Negation lowers the score of the emotion >> passed
+Input: i am not sad
+Expected: 
+The negation of "not sad" should lower or ideally completely suppress sadness score
+Possibly a neutral or less confident match with other categories like guilt
+Actual:
+Enter your feelings or thoughts:
+> i am not sad
+
+Top emotions detected:
+- sadness (score: 0.0941185)
+ Suggested Bible verses:
+    * Psalm 34:19 >> The Lord is close to the brokenhearted, saves those whose spirit is crushed.
+    * Revelation 21:4 >> He will wipe every tear from their eyes, and there shall be no more death or mourning, wailing or pain, [for] the old order has passed away.
+    * John 16:20 >> Amen, amen, I say to you, you will weep and mourn, while the world rejoices; you will grieve, but your grief will become joy.
+
+- guilt (score: 0.0761911)
+ Suggested Bible verses:
+    * 1 John 1:9 >> If we acknowledge our sins, he is faithful and just and will forgive our sins and cleanse us from every wrongdoing.
+    * Psalm 103:12 >> As far as the east is from the west, so far has he removed our sins from us.
+    * Isaiah 1:18 >> Though your sins be like scarlet, they may become white as snow; though they be red like crimson, they may become white as wool.
+
+
+Test case 3: Negation + Punctuation Emphasis >> passed
+Input: i am not sad, just anxious!!!
+Expected: 
+"not sad" should suppress sadness, meaning sadness should not appear in top emotions.
+"just anxious!!!" contains both clear emotion (anxious) and punctuation (!!!) that should boost intensity.
+Possible connected emotions like fear may appear but with lower scores.
+Actual: 
+Enter your feelings or thoughts:
+> i am not sad, just anxious!!!
+
+Top emotions detected:
+- anxiety (score: 0.850202)
+ Suggested Bible verses:
+    * Philippians 4:6û7 >> Have no anxiety at all, but in everything, by prayer and petition, with thanksgiving, make your requests known to God. Then the peace of God that surpasses all understanding will guard your hearts and minds in Christ Jesus.
+    * 1 Peter 5:7 >> Cast all your worries upon him because he cares for you.
+    * Matthew 6:34 >> Do not worry about tomorrow; tomorrow will take care of itself. Sufficient for a day is its own evil.
+
+- fear (score: 0.314843)
+ Suggested Bible verses:
+    * Isaiah 41:10 >> Do not fear: I am with you; do not be anxious: I am your God. I will strengthen you, I will help you, I will uphold you with my victorious right hand.
+
+- anger (score: 0.161912)
+ Suggested Bible verses:
+    * Ephesians 4:26 >> Be angry but do not sin; do not let the sun set on your anger.
+    * Proverbs 15:1 >> A mild answer turns back wrath, but a harsh word stirs up anger.
+    * James 1:19û20 >> Know this, my dear brothers: everyone should be quick to hear, slow to speak, slow to wrath, for the wrath of a man does not accomplish the righteousness of God.
+
